@@ -55,6 +55,26 @@ type userRepository struct {
 }
 
 func (u *userRepository) AssignUserToRole(ctx context.Context, userID uint, roleID uint) error {
+
+	select {
+
+	case <-ctx.Done():
+		log.Errorf("[User Repository] AssignUserToRole -1 : %v", ctx.Err())
+		return ctx.Err()
+	default:
+	}
+
+	userRole := model.UserRole{
+		UserID: userID,
+		RoleID: roleID,
+	}
+
+	err := u.db.WithContext(ctx).Create(&userRole).Error
+	if err != nil {
+		log.Errorf("[User Repository] AssignUserToRole -2 : %v", err)
+		return err
+	}
+
 	return nil
 }
 
@@ -194,7 +214,34 @@ func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 }
 
 func (u *userRepository) UpdateUser(ctx context.Context, user model.User) error {
-	return nil
+	select {
+	case <-ctx.Done():
+		log.Errorf("[User Repository] UpdateUser -1 : %v", ctx.Err())
+		return ctx.Err()
+	default:
+	}
+
+	modelUser := model.User{}
+
+	if err := u.db.WithContext(ctx).Select("id", "name", "email", "password", "photo", "phone").
+		Preload("Roles").
+		Where("id = ?", user.ID).
+		First(&modelUser).Error; err != nil {
+		log.Errorf("[User Repository] UpdateUser -2 : %v", err)
+		return err
+	}
+
+	modelUser.Name = user.Name
+	modelUser.Email = user.Email
+
+	if user.Password != "" {
+		modelUser.Password = user.Password
+	}
+
+	modelUser.Photo = user.Photo
+	modelUser.Phone = user.Phone
+
+	return u.db.WithContext(ctx).Save(&modelUser).Error
 }
 
 func (u *userRepository) DeleteUser(ctx context.Context, id uint) error {
@@ -251,11 +298,50 @@ func (u *userRepository) GetUserByRoleName(ctx context.Context, roleName string)
 }
 
 func (u *userRepository) EditAssignUserToRole(ctx context.Context, assignRoleID uint, userID uint, roleID uint) error {
-	return nil
+
+	select {
+	case <-ctx.Done():
+		log.Errorf("[User Repository] EditAssignUserToRole -1 : %v", ctx.Err())
+		return ctx.Err()
+	default:
+	}
+
+	userRole := model.UserRole{}
+
+	err := u.db.WithContext(ctx).Select("id", "user_id", "role_id").
+		Where("id = ?", assignRoleID).
+		First(&userRole).Error
+	if err != nil {
+		log.Errorf("[User Repository] EditAssignUserToRole -2 : %v", err)
+		return err
+	}
+
+	userRole.UserID = userID
+	userRole.RoleID = roleID
+
+	return u.db.WithContext(ctx).Save(&userRole).Error
 }
 
 func (u *userRepository) GetUserRoleByID(ctx context.Context, assignRoleID uint) (*model.UserRole, error) {
-	return nil, nil
+	select {
+	case <-ctx.Done():
+		log.Errorf("[User Repository] GetUserRoleByID -1 : %v", ctx.Err())
+		return nil, ctx.Err()
+	default:
+	}
+
+	userRole := model.UserRole{}
+
+	if err := u.db.WithContext(ctx).Select("id", "user_id", "role_id", "updated_at").
+		Preload("User").
+		Preload("Role").
+		Where("id = ?", assignRoleID).
+		First(&userRole).Error; err != nil {
+		log.Errorf("[User Repository] GetUserRoleByID -2 : %v", err)
+		return nil, err
+	}
+
+	return &userRole, nil
 }
 
 func (u *userRepository) GetAllUserRoles(ctx context.Context, page, limit int, search, sortBy, sortOrder string) ([]model.UserRole, int64, error) {
@@ -264,53 +350,49 @@ func (u *userRepository) GetAllUserRoles(ctx context.Context, page, limit int, s
 	// mengecek apakah context sudah dibatalkan atau timeout
 	// ctx time management
 	case <-ctx.Done():
-		log.Errorf("[User Repository] DeleteUser -1 : %v", ctx.Err())
+		log.Errorf("[User Repository] GetAllUserRoles -1 : %v", ctx.Err())
 		return nil, 0, ctx.Err()
 	default:
 	}
 
-	if page <= 0 {
-		page = 1
-	}
+	userRoles := []model.UserRole{}
 
-	if limit <= 0 {
-		limit = 10
-	}
+	var totalRecords int64
 
-	if sortBy == "" {
-		sortBy = "created_at"
-	}
-
-	if sortOrder == "" {
-		sortOrder = "desc"
-	}
-
-	// calculate offset
-	offset := (page - 1) * limit
-
-	//BUild query
+	// Build Query
 	query := u.db.WithContext(ctx).Model(&model.UserRole{})
 
-	// Add search user if provided
-	// Unsesitif ilike
+	// Apply Search Filter if needed
 	if search != "" {
-		query = query.Where("name ILIKE ? OR email ILIKE ?", "%"+search+"%", "%"+search+"%")
+		query = query.Joins("JOIN users ON user_roles.user_id = users.id").
+			Joins("JOIN roles ON user_roles.role_id = roles.id").
+			Where("users.name ILIKE ? OR users.email ILIKE ? OR roles.name ILIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
 
-	//Get Total Count
-	var totalRecords int64
+	// Get Total Records Count
 	if err := query.Count(&totalRecords).Error; err != nil {
 		log.Errorf("[User Repository] GetAllUserRoles - Count Error : %v", err)
 		return nil, 0, err
 	}
 
-	// Get Paginated Data
-	var userRoles []model.UserRole
-	// select id name mail password photo phone created at updated at
-	if err := query.Select("id", "name", "email", "password", "photo", "phone", "created_at", "updated_at").
-		Preload("Roles").
-		Order(sortBy + " " + sortOrder).
-		Offset(offset).Limit(limit).
+	// Apply Sorting
+	if sortBy != "" {
+		if sortOrder == "" {
+			sortOrder = "asc"
+		}
+		query = query.Order(sortBy + " " + sortOrder)
+	} else {
+		query = query.Order("id desc")
+	}
+
+	// Apply Pagination
+	offset := (page - 1) * limit
+	query = query.Offset(offset).Limit(limit)
+
+	// Execute Query With Preloads
+	if err := query.Select("id", "user_id", "role_id").
+		Preload("User").
+		Preload("Role").
 		Find(&userRoles).Error; err != nil {
 		log.Errorf("[User Repository] GetAllUserRoles - Find Error : %v", err)
 		return nil, 0, err
