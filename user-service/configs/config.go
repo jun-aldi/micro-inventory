@@ -17,8 +17,8 @@ type SqlDb struct {
 	User           string `json:"user"`
 	Password       string `json:"password"`
 	DbName         string `json:"db_name"`
-	DbMaxOpenCons  string `json:"db_max_open_cons"`
-	DbIdleOpenCons string `json:"db_idle_open_cons"`
+	DbMaxOpenCons  int    `json:"db_max_open_cons"`
+	DbIdleOpenCons int    `json:"db_idle_open_cons"`
 }
 
 type Redis struct {
@@ -65,8 +65,8 @@ func NewConfig() *Config {
 			User:           viper.GetString("DATABASE_USER"),
 			Password:       viper.GetString("DATABASE_PASSWORD"),
 			DbName:         viper.GetString("DATABASE_NAME"),
-			DbMaxOpenCons:  viper.GetString("DATABASE_MAX_OPEN_CONNECTION"),
-			DbIdleOpenCons: viper.GetString("DATABASE_MAX_IDLE_CONNECTION"),
+			DbMaxOpenCons:  viper.GetInt("DATABASE_MAX_OPEN_CONNECTION"),
+			DbIdleOpenCons: viper.GetInt("DATABASE_MAX_IDLE_CONNECTION"),
 		},
 		Redis: Redis{
 			Host: viper.GetString("REDIS_HOST"),
