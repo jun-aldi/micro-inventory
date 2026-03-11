@@ -54,6 +54,12 @@ type userRepository struct {
 	db *gorm.DB
 }
 
+func NewUserRepository(db *gorm.DB) UserRepositoryInterface {
+	return &userRepository{
+		db: db,
+	}
+}
+
 func (u *userRepository) AssignUserToRole(ctx context.Context, userID uint, roleID uint) error {
 
 	select {
@@ -234,7 +240,7 @@ func (u *userRepository) UpdateUser(ctx context.Context, user model.User) error 
 	modelUser.Name = user.Name
 	modelUser.Email = user.Email
 
-	if user.Password != "" {
+	if len(user.Password) > 0 {
 		modelUser.Password = user.Password
 	}
 
@@ -245,7 +251,6 @@ func (u *userRepository) UpdateUser(ctx context.Context, user model.User) error 
 }
 
 func (u *userRepository) DeleteUser(ctx context.Context, id uint) error {
-	// Check if context is cancelled or timeout
 	select {
 	case <-ctx.Done():
 		log.Errorf("[User Repository] DeleteUser -1 : %v", ctx.Err())

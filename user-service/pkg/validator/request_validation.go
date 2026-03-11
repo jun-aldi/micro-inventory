@@ -1,7 +1,8 @@
+package validator
+
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -50,9 +51,9 @@ func Validate(data interface{}) error {
 
 func joinMessage(errorMessages []string) string {
 	result := ""
-	for i, message := renge errorMessages {
+	for i, message := range errorMessages {
 		if i > 0 {
-			result +=","
+			result += ","
 		}
 		result += message
 	}

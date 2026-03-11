@@ -23,15 +23,23 @@ type roleRepository struct {
 	db *gorm.DB
 }
 
-func (r *roleRepository) CreateRole(ctx context.Context, role model.Role) error {
+func NewRoleRepository(db *gorm.DB) RoleRepositoryInterface {
+	return &roleRepository{
+		db: db,
+	}
+}
+
+func (r *roleRepository) CreateRole(ctx context.Context, role model.Role) (*model.Role, error) {
 	select {
 	case <-ctx.Done():
 		log.Errorf("[Role Repository] CreateRole -1 : %v", ctx.Err())
-		return ctx.Err()
+		return nil, ctx.Err()
 	default:
-		return r.db.WithContext(ctx).Create(&role).Error
+		if err := r.db.WithContext(ctx).Create(&role).Error; err != nil {
+			return nil, err
+		}
+		return &role, nil
 	}
-
 }
 
 func (r *roleRepository) DeleteRole(ctx context.Context, id uint) error {
@@ -83,16 +91,17 @@ func (r *roleRepository) GetRoleByID(ctx context.Context, id uint) (*model.Role,
 		return nil, ctx.Err()
 	default:
 		modelRole := model.Role{}
-		if err := r.db.WithContext(ctx).Preload("Users").Where("id != ?", id).
-			Where("id = ?", id).
-			First(&modelRole).Error; err != nil {
+
+		if err := r.db.WithContext(ctx).
+			Preload("Users").
+			First(&modelRole, id).Error; err != nil {
+
 			log.Errorf("[Role Repository] GetRoleByID -2 : %v", err)
 			return nil, err
 		}
 
 		return &modelRole, nil
 	}
-
 }
 
 func (r *roleRepository) GetAllRoles(ctx context.Context) ([]model.Role, error) {
