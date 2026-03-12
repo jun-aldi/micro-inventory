@@ -8,8 +8,8 @@ import (
 )
 
 // CRUD
-type RoleUsecase interface {
-	CreateRole(ctx context.Context, role model.Role) (*model.Role, error)
+type RoleUsecaseInterface interface {
+	CreateRole(ctx context.Context, role model.Role) error
 	UpdateRole(ctx context.Context, role model.Role) error
 	DeleteRole(ctx context.Context, id uint) error
 	GetRoleByID(ctx context.Context, id uint) (*model.Role, error)
@@ -20,8 +20,9 @@ type roleUsecase struct {
 	roleRepo repository.RoleRepositoryInterface
 }
 
-func (r *roleUsecase) CreateRole(ctx context.Context, role model.Role) (*model.Role, error) {
-	return r.roleRepo.CreateRole(ctx, role)
+func (r *roleUsecase) CreateRole(ctx context.Context, role model.Role) error {
+	_, err := r.roleRepo.CreateRole(ctx, role)
+	return err
 }
 
 func (r *roleUsecase) UpdateRole(ctx context.Context, role model.Role) error {
@@ -41,7 +42,7 @@ func (r *roleUsecase) GetAllRoles(ctx context.Context) ([]model.Role, error) {
 }
 
 // constructor
-func NewRoleUsecase(roleRepo repository.RoleRepositoryInterface) RoleUsecase {
+func NewRoleUsecase(roleRepo repository.RoleRepositoryInterface) RoleUsecaseInterface {
 	return &roleUsecase{
 		roleRepo: roleRepo,
 	}
