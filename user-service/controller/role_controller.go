@@ -8,7 +8,7 @@ import (
 	"micro-inventory/user-service/pkg/validator"
 	"micro-inventory/user-service/usecase"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 )
 
