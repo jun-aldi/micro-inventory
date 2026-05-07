@@ -3,13 +3,13 @@ package model
 import "time"
 
 type User struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	Name      string    `gorm:"type:varchar(100);not null" json:"name"`
-	Email     string    `gorm:"type:varchar(100);not null" json:"email"`
-	Password  string    `gorm:"not null" json:"-"`
-	Photo     string    `gorm:"type:varchar(255)" json:"photo"`
-	Phone     string    `gorm:"type:varchar(20)" json:"phone"`
-	Roles     []Role    `gorm:"many2many:user_roles;" json:"roles"`
+	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email" gorm:"unique"`
+	Password  string    `json:"password"`
+	Photo     string    `json:"photo"`
+	Phone     string    `json:"phone"`
+	Roles     []Role    `gorm:"many2many:user_role;"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

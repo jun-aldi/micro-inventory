@@ -11,10 +11,6 @@ import (
 )
 
 type UserUsecaseInterface interface {
-
-	// =========================
-	// USER
-	// =========================
 	CreateUser(ctx context.Context, user model.User) error
 
 	GetAllUsers(ctx context.Context,
@@ -32,19 +28,13 @@ type UserUsecaseInterface interface {
 
 	GetUserByRoleName(ctx context.Context, roleName string) ([]model.User, error)
 
-	// =========================
-	// USER ROLE
-	// =========================
 	AssignUserToRole(ctx context.Context, userID uint, roleID uint) error
-
 	EditAssignUserToRole(ctx context.Context,
 		assignRoleID uint,
 		userID uint,
 		roleID uint,
 	) error
-
 	GetUserRoleByID(ctx context.Context, assignRoleID uint) (*model.UserRole, error)
-
 	GetAllUserRoles(ctx context.Context,
 		page, limit int,
 		search, sortBy, sortOrder string,
