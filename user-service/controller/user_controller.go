@@ -219,7 +219,7 @@ func (u *userController) GetAllUserRoles(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "UserRoles fetched successfully",
+		"message": "User Roles fetched successfully",
 		"data":    response,
 	})
 }
@@ -294,17 +294,106 @@ func (u *userController) GetAllUsers(c *fiber.Ctx) error {
 
 // GetUserByID implements [UserControllerInterface].
 func (u *userController) GetUserByID(c *fiber.Ctx) error {
-	panic("unimplemented")
+	ctx := c.Context()
+	id := c.Params("id")
+
+	userID := conv.StringToUint(id)
+
+	user, err := u.userUsecase.GetUserByID(ctx, userID)
+	if err != nil {
+		log.Errorf("[UserController] GetUserByID -1: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	roleName := ""
+	if len(user.Roles) > 0 {
+		roleName = user.Roles[0].Name
+	}
+
+	resp := response.UserResponse{
+		ID:       user.ID,
+		Email:    user.Email,
+		Name:     user.Name,
+		Phone:    user.Phone,
+		Photo:    user.Photo,
+		RoleName: roleName,
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User fetched successfully",
+		"data":    resp,
+	})
 }
 
 // GetUserByRoleName implements [UserControllerInterface].
 func (u *userController) GetUserByRoleName(c *fiber.Ctx) error {
-	panic("unimplemented")
+	ctx := c.Context()
+	roleName := c.Params("roleName")
+
+	users, err := u.userUsecase.GetUserByRoleName(ctx, roleName)
+	if err != nil {
+		log.Errorf("[UserController] GetUserByRoleName -1: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	resp := []response.UserResponse{}
+	for _, user := range users {
+		roleName := ""
+		if len(user.Roles) > 0 {
+			roleName = user.Roles[0].Name
+		}
+
+		resp = append(resp, response.UserResponse{
+			ID:       user.ID,
+			Email:    user.Email,
+			Name:     user.Name,
+			Phone:    user.Phone,
+			Photo:    user.Photo,
+			RoleName: roleName,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User fetched successfully",
+		"data":    resp,
+	})
 }
 
 // GetUserRoleByID implements [UserControllerInterface].
 func (u *userController) GetUserRoleByID(c *fiber.Ctx) error {
-	panic("unimplemented")
+	ctx := c.Context()
+	userRoleIDStr := c.Params("userRoleId")
+	userRoleID := conv.StringToUint(userRoleIDStr)
+
+	userRole, err := u.userUsecase.GetUserRoleByID(ctx, userRoleID)
+	if err != nil {
+		log.Errorf("[UserController] GetUserRoleByID -1: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	resp := response.UserRoleResponse{
+		ID:     userRole.ID,
+		UserID: userRole.UserID,
+		RoleID: userRole.RoleID,
+		User: response.UserResponse{
+			ID: userRole.User.ID,
+		},
+		Role: response.RoleResponse{
+			ID:   userRole.Role.ID,
+			Name: userRole.Role.Name,
+		},
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User Role fetched successfully",
+		"data":    resp,
+	})
 }
 
 // UpdateUser implements [UserControllerInterface].
