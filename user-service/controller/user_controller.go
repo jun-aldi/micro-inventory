@@ -197,31 +197,29 @@ func (u *userController) GetAllUserRoles(c *fiber.Ctx) error {
 	resp := []response.UserRoleResponse{}
 
 	for _, user := range users {
-		roleName := ""
-
-		if len(user.Roles) > 0 {
-			roleName = user.Roles[0].Name
-		}
-
-		resp = append(resp, response.UserResponse{
-			ID:       user.ID,
-			Email:    user.Email,
-			Name:     user.Name,
-			Phone:    user.Phone,
-			Photo:    user.Photo,
-			RoleName: roleName,
+		resp = append(resp, response.UserRoleResponse{
+			ID:     user.ID,
+			UserID: user.UserID,
+			RoleID: user.RoleID,
+			User: response.UserResponse{
+				ID: user.User.ID,
+			},
+			Role: response.RoleResponse{
+				ID:   user.RoleID,
+				Name: user.Role.Name,
+			},
 		})
 	}
 
 	paginationInfo := pagination.CalculatePagination(int(req.Page), int(req.Limit), int(total))
 
-	response := response.GetAllUserResponse{
-		Users:      resp,
+	response := response.GetAllUserRolesResponse{
+		UserRoles:  resp,
 		Pagination: paginationInfo,
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Users fetched successfully",
+		"message": "UserRoles fetched successfully",
 		"data":    response,
 	})
 }
