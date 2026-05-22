@@ -22,4 +22,6 @@ func SetupRoutes(app *fiber.App, container *Container) {
 
 	users.Get("/role/:roleName", container.UserController.GetUserByRoleName)
 
+	auth := api.Group("/auth")
+	auth.Post("/login", container.AuthController.Login)
 }
