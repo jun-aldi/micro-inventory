@@ -377,28 +377,63 @@ func (u *userController) GetUserRoleByID(c *fiber.Ctx) error {
 		})
 	}
 
-	resp := response.UserRoleResponse{
-		ID:     userRole.ID,
-		UserID: userRole.UserID,
-		RoleID: userRole.RoleID,
-		User: response.UserResponse{
-			ID: userRole.User.ID,
-		},
-		Role: response.RoleResponse{
-			ID:   userRole.Role.ID,
-			Name: userRole.Role.Name,
-		},
-	}
-
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "User Role fetched successfully",
-		"data":    resp,
+		"data":    userRole,
 	})
 }
 
 // UpdateUser implements [UserControllerInterface].
 func (u *userController) UpdateUser(c *fiber.Ctx) error {
-	panic("unimplemented")
+	ctx := c.Context()
+	id := c.Params("id")
+
+	var req request.UpdateUserRequest
+	if err := c.BodyParser(&req); err != nil {
+		log.Errorf("[UserController] UpdateUser -1: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	if err := validator.Validate(req); err != nil {
+		log.Errorf("[UserController] UpdateUser -2: %v", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	userId := conv.StringToUint(id)
+	userModel := model.User{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+		Phone:    req.Phone,
+		Photo:    req.Photo,
+		ID:       userId,
+	}
+
+	if req.Password != "" {
+		hashedPassword, err := conv.HashPassword(req.Password)
+		if err != nil {
+			log.Errorf("[UserController] UpdateUser -3: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+		userModel.Password = hashedPassword
+	}
+
+	if err := u.userUsecase.UpdateUser(ctx, userModel); err != nil {
+		log.Errorf("[UserController] UpdateUser -4: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User updated successfully",
+	})
 }
 
 func NewUserController(userUsecase usecase.UserUsecaseInterface) UserControllerInterface {

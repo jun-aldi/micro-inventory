@@ -20,3 +20,11 @@ type GetAllUserRequest struct {
 	SortBy    string `json:"sort_by" validate:"omitempty"`
 	SortOrder string `json:"sort_order" validate:"omitempty"`
 }
+
+type UpdateUserRequest struct {
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"omitempty,min=8"`
+	Phone    string `json:"phone"`
+	Photo    string `json:"photo"`
+}
