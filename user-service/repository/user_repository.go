@@ -287,7 +287,7 @@ func (u *userRepository) GetUserByRoleName(ctx context.Context, roleName string)
 
 	// Gunakan Sub Query
 	subQuery := u.db.Table("user_roles").
-		Select("user_role.user_id").
+		Select("user_roles.user_id").
 		Joins("JOIN roles ON roles.id = user_roles.role_id").
 		Where("roles.name = ?", roleName)
 

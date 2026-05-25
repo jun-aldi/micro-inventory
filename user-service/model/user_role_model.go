@@ -19,5 +19,5 @@ type Tabler interface {
 }
 
 func (UserRole) TableName() string {
-	return "user_role"
+	return "user_roles"
 }

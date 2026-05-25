@@ -14,12 +14,10 @@ func SeedRole(db *gorm.DB) {
 	}
 
 	for _, role := range roles {
-		if err := db.Create(&role).Error; err != nil {
+		if err := db.FirstOrCreate(&role, model.Role{Name: role.Name}).Error; err != nil {
 			log.Errorf("[RoleSeeder] SeedRole -1: %v", err)
 		} else {
 			log.Infof("[RoleSeeder] SeedRole -1: %v", "Role created succesfully")
 		}
-
 	}
-
 }

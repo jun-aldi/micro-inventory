@@ -84,7 +84,7 @@ func (r *rabbitMQService) PublishMail(ctx context.Context, payload EmailPayload)
 }
 
 func NewRabbitMQService(config configs.Config) (RabbitMQServiceInterface, error) {
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d/", config.RabbitMQ.Username, config.RabbitMQ.Password, config.RabbitMQ.Host, config.RabbitMQ.Port))
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", config.RabbitMQ.Username, config.RabbitMQ.Password, config.RabbitMQ.Host, config.RabbitMQ.Port))
 	if err != nil {
 		log.Errorf("[RabbitMQService] NewRabbitMQService -1: %v", err)
 		return nil, err
