@@ -13,7 +13,7 @@ import (
 )
 
 type SupabaseInterface interface {
-	UploadFile(ctx context.Context, path string, file *multipart.FileHeader, folder string) (*UploadResult, error)
+	UploadFile(ctx context.Context, file *multipart.FileHeader, folder string) (*UploadResult, error)
 }
 
 type SupabaseStorage struct {
@@ -22,7 +22,7 @@ type SupabaseStorage struct {
 }
 
 // UploadFile implements [SupabaseInterface].
-func (s *SupabaseStorage) UploadFile(ctx context.Context, path string, file *multipart.FileHeader, folder string) (*UploadResult, error) {
+func (s *SupabaseStorage) UploadFile(ctx context.Context, file *multipart.FileHeader, folder string) (*UploadResult, error) {
 	src, err := file.Open()
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %v", err)
@@ -70,7 +70,7 @@ func (s *SupabaseStorage) UploadFile(ctx context.Context, path string, file *mul
 
 	return &UploadResult{
 		URL:      publicUrl.SignedURL,
-		Path:     path,
+		Path:     filePath,
 		Filename: fileName,
 	}, nil
 }

@@ -4,6 +4,7 @@ import (
 	"micro-inventory/user-service/configs"
 	"micro-inventory/user-service/controller"
 	"micro-inventory/user-service/database"
+	"micro-inventory/user-service/pkg/storage"
 	"micro-inventory/user-service/repository"
 	"micro-inventory/user-service/service"
 	"micro-inventory/user-service/usecase"
@@ -12,9 +13,10 @@ import (
 )
 
 type Container struct {
-	RoleController controller.RoleControllerInterface
-	UserController controller.UserControllerInterface
-	AuthController controller.AuthControllerInterface
+	RoleController   controller.RoleControllerInterface
+	UserController   controller.UserControllerInterface
+	AuthController   controller.AuthControllerInterface
+	UploadController controller.UploadControllerInterface
 }
 
 func BuildContainer() *Container {
@@ -30,6 +32,12 @@ func BuildContainer() *Container {
 		log.Fatalf("Failed to connect to rabbitmq: ", err)
 	}
 
+	supabaseStorage := storage.NewSupabaseStorage(*config)
+
+	fileUploadHelper := storage.NewFileUploadHelper(supabaseStorage, *config)
+
+	uploadController := controller.NewUploadController(fileUploadHelper)
+
 	roleRepo := repository.NewRoleRepository(db.DB)
 	roleUsecase := usecase.NewRoleUsecase(roleRepo)
 	roleController := controller.NewRoleController(roleUsecase)
@@ -41,9 +49,10 @@ func BuildContainer() *Container {
 	authController := controller.NewAuthController(userUsecase)
 
 	return &Container{
-		RoleController: roleController,
-		UserController: userController,
-		AuthController: authController,
+		RoleController:   roleController,
+		UserController:   userController,
+		AuthController:   authController,
+		UploadController: uploadController,
 	}
 
 }
