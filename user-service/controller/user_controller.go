@@ -202,7 +202,10 @@ func (u *userController) GetAllUserRoles(c *fiber.Ctx) error {
 			UserID: user.UserID,
 			RoleID: user.RoleID,
 			User: response.UserResponse{
-				ID: user.User.ID,
+				ID:    user.User.ID,
+				Name:  user.User.Name,
+				Phone: user.User.Phone,
+				Photo: user.User.Photo,
 			},
 			Role: response.RoleResponse{
 				ID:   user.RoleID,

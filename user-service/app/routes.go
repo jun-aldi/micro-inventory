@@ -20,6 +20,12 @@ func SetupRoutes(app *fiber.App, container *Container) {
 	users.Get("/:id", container.UserController.GetUserByID)
 	users.Get("/", container.UserController.GetAllUsers)
 
+	assignedRoles := api.Group("/assign-role")
+	assignedRoles.Post("/", container.UserController.AssignUserToRole)
+	assignedRoles.Put("/:id", container.UserController.EditAssignUserToRole)
+	assignedRoles.Get("/:id", container.UserController.GetUserRoleByID)
+	assignedRoles.Get("/", container.UserController.GetAllUserRoles)
+
 	users.Get("/role/:roleName", container.UserController.GetUserByRoleName)
 
 	auth := api.Group("/auth")

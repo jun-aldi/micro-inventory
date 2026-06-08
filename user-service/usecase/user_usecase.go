@@ -48,12 +48,12 @@ type userUsecase struct {
 
 func NewUserUsecase(userRepo repository.UserRepositoryInterface, rabbitMQService service.RabbitMQServiceInterface) UserUsecaseInterface {
 	return &userUsecase{
-		userRepo: userRepo,
+		userRepo:        userRepo,
+		rabbitMQService: rabbitMQService,
 	}
 }
 
 func (u *userUsecase) CreateUser(ctx context.Context, user model.User) error {
-
 	password, err := conv.HashPassword(user.Password)
 	if err != nil {
 		log.Errorf("[UserUsecase] CreateUser -1: %v", err)
@@ -77,7 +77,7 @@ func (u *userUsecase) CreateUser(ctx context.Context, user model.User) error {
 	}
 
 	go func() {
-		if err := u.rabbitMQService.PublishMail(ctx, EmailPayload); err != nil {
+		if err := u.rabbitMQService.PublishMail(context.Background(), EmailPayload); err != nil {
 			log.Errorf("[UserUsecase] CreateUser -3: %v", err)
 		}
 	}()
