@@ -8,17 +8,17 @@ func SetupRoutes(app *fiber.App, container *Container) {
 	categories := api.Group("/categories")
 	products := api.Group("/products")
 
-	categories.Get("/", container.CategoryController.FindAll)
-	categories.Get("/:id", container.CategoryController.FindByID)
-	categories.Post("/", container.CategoryController.Create)
-	categories.Put("/:id", container.CategoryController.Update)
-	categories.Delete("/:id", container.CategoryController.Delete)
+	categories.Get("/", container.CategoryController.GetAllCategories)
+	categories.Get("/:id", container.CategoryController.GetCategoryByID)
+	categories.Post("/", container.CategoryController.CreateCategory)
+	categories.Put("/:id", container.CategoryController.UpdateCategory)
+	categories.Delete("/:id", container.CategoryController.DeleteCategory)
 
-	products.Get("/", container.ProductController.FindAll)
-	products.Get("/:id", container.ProductController.FindByID)
-	products.Get("/barcode /:barcode ", container.ProductController.GetProductByCode)
-	products.Post("/", container.ProductController.Create)
-	products.Put("/:id", container.ProductController.Update)
-	products.Delete("/:id", container.ProductController.Delete)
+	products.Get("/", container.ProductController.GetAllProducts)
+	products.Get("/barcode/:barcode", container.ProductController.GetProductByBarcode) // move above /:id to avoid conflict
+	products.Get("/:id", container.ProductController.GetProductByID)
+	products.Post("/", container.ProductController.CreateProduct)
+	products.Put("/:id", container.ProductController.UpdateProduct)
+	products.Delete("/:id", container.ProductController.DeleteProduct)
 
 }
