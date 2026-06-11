@@ -36,4 +36,5 @@ func ConnectionPostgress(cfg configs.Config) (*Postgres, error) {
 	sqlDB.SetMaxIdleConns(cfg.SqlDb.DbIdleOpenCons)
 
 	return &Postgres{DB: db}, nil
+
 }

@@ -11,7 +11,7 @@ import (
 
 type CategoryRepositoryInterface interface {
 	CreateCategory(ctx context.Context, category *model.Category) error
-	GetAllCategories(ctx context.Context, page, limit int, search string, sortBy, sortOrder string) (*[]model.Category, int64, error)
+	GetAllCategories(ctx context.Context, page, limit int, search string, sortBy, sortOrder string) ([]model.Category, int64, error)
 	GetCategoryByID(ctx context.Context, id uint) (*model.Category, error)
 	UpdateCategory(ctx context.Context, category *model.Category) error
 	DeleteCategory(ctx context.Context, id uint) error
@@ -132,4 +132,8 @@ func (c *categoryRepository) CreateCategory(ctx context.Context, category *model
 	default:
 		return c.db.WithContext(ctx).Create(category).Error
 	}
+}
+
+func NewCategoryRepository(db *gorm.DB) CategoryRepositoryInterface {
+	return &categoryRepository{db: db}
 }

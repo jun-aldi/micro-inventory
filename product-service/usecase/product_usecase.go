@@ -1,0 +1,53 @@
+package usecase
+
+import (
+	"context"
+	"micro-inventory/product-service/model"
+	"micro-inventory/product-service/repository"
+)
+
+type ProductUsecaseInterface interface {
+	CreateProduct(ctx context.Context, product *model.Product) error
+	GetAllProducts(ctx context.Context, page, limit int, search string, sortBy, sortOrder string) ([]model.Product, int64, error)
+	GetProductByID(ctx context.Context, id uint) (*model.Product, error)
+	GetProductByBarcode(ctx context.Context, barcode string) (*model.Product, error)
+	UpdateProduct(ctx context.Context, product *model.Product) error
+	DeleteProduct(ctx context.Context, id uint) error
+}
+
+type productUsecase struct {
+	productRepo repository.ProductRepositoryInterface
+}
+
+// CreateProduct implements [ProductUsecaseInterface].
+func (p *productUsecase) CreateProduct(ctx context.Context, product *model.Product) error {
+	return p.productRepo.CreateProduct(ctx, product)
+}
+
+// DeleteProduct implements [ProductUsecaseInterface].
+func (p *productUsecase) DeleteProduct(ctx context.Context, id uint) error {
+	return p.productRepo.DeleteProduct(ctx, id)
+}
+
+// GetAllProducts implements [ProductUsecaseInterface].
+func (p *productUsecase) GetAllProducts(ctx context.Context, page int, limit int, search string, sortBy string, sortOrder string) ([]model.Product, int64, error) {
+	return p.productRepo.GetAllProducts(ctx, page, limit, search, sortBy, sortOrder)
+}
+
+func (p *productUsecase) GetProductByBarcode(ctx context.Context, barcode string) (*model.Product, error) {
+	return p.productRepo.GetProductByBarcode(ctx, barcode)
+}
+
+// GetProductByID implements [ProductUsecaseInterface].
+func (p *productUsecase) GetProductByID(ctx context.Context, id uint) (*model.Product, error) {
+	return p.productRepo.GetProductByID(ctx, id)
+}
+
+// UpdateProduct implements [ProductUsecaseInterface].
+func (p *productUsecase) UpdateProduct(ctx context.Context, product *model.Product) error {
+	return p.productRepo.UpdateProduct(ctx, product)
+}
+
+func NewProductUsecase(repo repository.ProductRepositoryInterface) ProductUsecaseInterface {
+	return &productUsecase{productRepo: repo}
+}

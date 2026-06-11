@@ -11,10 +11,10 @@ import (
 type ProductRepositoryInterface interface {
 	CreateProduct(ctx context.Context, product *model.Product) error
 	GetAllProducts(ctx context.Context, page, limit int, search string, sortBy, sortOrder string) ([]model.Product, int64, error)
-	GetProductByID(ctx context.Context, id string) (*model.Product, error)
-	GetProductByBarcode(ctx context.Context, barcode string) (*[]model.Product, error)
+	GetProductByID(ctx context.Context, id uint) (*model.Product, error)
+	GetProductByBarcode(ctx context.Context, barcode string) (*model.Product, error)
 	UpdateProduct(ctx context.Context, product *model.Product) error
-	DeleteProduct(ctx context.Context, id string) error
+	DeleteProduct(ctx context.Context, id uint) error
 }
 
 type productRepository struct {
@@ -33,7 +33,7 @@ func (p *productRepository) CreateProduct(ctx context.Context, product *model.Pr
 }
 
 // DeleteProduct implements [ProductRepositoryInterface].
-func (p *productRepository) DeleteProduct(ctx context.Context, id string) error {
+func (p *productRepository) DeleteProduct(ctx context.Context, id uint) error {
 	select {
 	case <-ctx.Done():
 		log.Errorf("[ProductRepository] DeleteProduct -1: %v", ctx.Err())
@@ -94,14 +94,14 @@ func (p *productRepository) GetAllProducts(ctx context.Context, page int, limit 
 }
 
 // GetProductByBarcode implements [ProductRepositoryInterface].
-func (p *productRepository) GetProductByBarcode(ctx context.Context, barcode string) (*[]model.Product, error) {
+func (p *productRepository) GetProductByBarcode(ctx context.Context, barcode string) (*model.Product, error) {
 	select {
 	case <-ctx.Done():
 		log.Errorf("[ProductRepository] GetProductByBarcode -1: %v", ctx.Err())
 		return nil, ctx.Err()
 	default:
-		var modelProduct []model.Product
-		if err := p.db.WithContext(ctx).Where("barcode = ?", barcode).Preload("Category").Find(&modelProduct).Error; err != nil {
+		var modelProduct model.Product
+		if err := p.db.WithContext(ctx).Where("barcode = ?", barcode).Preload("Category").First(&modelProduct).Error; err != nil {
 			log.Errorf("[ProductRepository] GetProductByBarcode -2: %v", err)
 			return nil, err
 		}
@@ -110,7 +110,7 @@ func (p *productRepository) GetProductByBarcode(ctx context.Context, barcode str
 }
 
 // GetProductByID implements [ProductRepositoryInterface].
-func (p *productRepository) GetProductByID(ctx context.Context, id string) (*model.Product, error) {
+func (p *productRepository) GetProductByID(ctx context.Context, id uint) (*model.Product, error) {
 	select {
 	case <-ctx.Done():
 		log.Errorf("[ProductRepository] GetProductByID -1: %v", ctx.Err())
