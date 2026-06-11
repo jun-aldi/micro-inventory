@@ -5,6 +5,7 @@ import (
 	"micro-inventory/product-service/configs"
 	"micro-inventory/product-service/controller"
 	"micro-inventory/product-service/database"
+	"micro-inventory/product-service/pkg/storage"
 	"micro-inventory/product-service/repository"
 	"micro-inventory/product-service/usecase"
 )
@@ -12,6 +13,7 @@ import (
 type Container struct {
 	ProductController  controller.ProductControllerInterface
 	CategoryController controller.CategoryControllerInterface
+	UploadController   controller.UploadControllerInterface
 }
 
 func BuildContainer() *Container {
@@ -30,9 +32,14 @@ func BuildContainer() *Container {
 	productUsecase := usecase.NewProductUsecase(productRepo)
 	productController := controller.NewProductController(productUsecase)
 
+	supabaseStorage := storage.NewSupabaseStorage(*config)
+	fileUploadHelper := storage.NewFileUploadHelper(supabaseStorage, *config)
+	uploadController := controller.NewUploadController(fileUploadHelper)
+
 	return &Container{
 		ProductController:  productController,
 		CategoryController: categoryController,
+		UploadController:   uploadController,
 	}
 
 }
