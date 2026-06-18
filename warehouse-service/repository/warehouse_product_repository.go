@@ -17,16 +17,19 @@ type WarehouseProductRepositoryInterface interface {
 	GetDetailWarehouseProductByID(ctx context.Context, warehouseProductID uint) (*model.WarehouseProduct, error)
 	GetWarehouseProductsByProductID(ctx context.Context, productID uint) ([]model.WarehouseProduct, error)
 	CreateWarehouseProduct(ctx context.Context, warehouseProduct *model.WarehouseProduct) error
-	GetWarehouseProductsByWarehouseIDAndProductID(ctx context.Context, warehouseID, productID uint) ([]model.WarehouseProduct, error)
+	GetWarehouseProductsByWarehouseIDAndProductID(ctx context.Context, warehouseID, productID uint) (*model.WarehouseProduct, error)
 	UpdateWarehouseProduct(ctx context.Context, warehouseProduct *model.WarehouseProduct) error
 	DeleteWarehouseProduct(ctx context.Context, warehouseProductID uint) error
-	DeleteAllWarehouseProductByProductID(ctx context.Context, productID uint) error // Fixed: Changed return type to match implementation
+	DeleteAllWarehouseProductByProductID(ctx context.Context, productID uint) error
 	GetProductTotalStock(ctx context.Context, productID uint) (int, error)
 }
 
 type WarehouseProductRepository struct {
 	db *gorm.DB
 }
+
+// Compile-time assertion to ensure WarehouseProductRepository fully implements the interface.
+var _ WarehouseProductRepositoryInterface = (*WarehouseProductRepository)(nil)
 
 // CreateWarehouseProduct implements [WarehouseProductRepositoryInterface].
 func (w *WarehouseProductRepository) CreateWarehouseProduct(ctx context.Context, warehouseProduct *model.WarehouseProduct) error {
@@ -143,18 +146,18 @@ func (w *WarehouseProductRepository) GetWarehouseProductsByProductID(ctx context
 }
 
 // GetWarehouseProductsByWarehouseIDAndProductID implements [WarehouseProductRepositoryInterface].
-func (w *WarehouseProductRepository) GetWarehouseProductsByWarehouseIDAndProductID(ctx context.Context, warehouseID uint, productID uint) ([]model.WarehouseProduct, error) {
+func (w *WarehouseProductRepository) GetWarehouseProductsByWarehouseIDAndProductID(ctx context.Context, warehouseID uint, productID uint) (*model.WarehouseProduct, error) {
 	select {
 	case <-ctx.Done():
 		log.Errorf("[WarehouseProductRepository] GetWarehouseProductsByWarehouseIDAndProductID -1: %v", ctx.Err())
 		return nil, ctx.Err()
 	default:
-		warehouseProducts := []model.WarehouseProduct{}
-		if err := w.db.WithContext(ctx).Where("warehouse_id = ? AND product_id = ?", warehouseID, productID).First(&warehouseProducts).Error; err != nil {
+		var warehouseProduct model.WarehouseProduct
+		if err := w.db.WithContext(ctx).Where("warehouse_id = ? AND product_id = ?", warehouseID, productID).First(&warehouseProduct).Error; err != nil {
 			log.Errorf("[WarehouseProductRepository] GetWarehouseProductsByWarehouseIDAndProductID -2: %v", err)
 			return nil, err
 		}
-		return warehouseProducts, nil
+		return &warehouseProduct, nil
 	}
 }
 
